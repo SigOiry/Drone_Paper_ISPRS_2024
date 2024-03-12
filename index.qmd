@@ -1,0 +1,48 @@
+---
+title: "PREPRINT -- Exploring diverse Applications of Drone Technology: From Color Mapping to Topography Assessment  -- PREPRINT."
+author:
+  - name: Simon Oiry
+    orcid: 0000-0001-7161-5246
+    corresponding: true
+    email: oirysimon@gmail.com
+    roles:
+      - Investigation
+      - Writing
+      - Data acquisition
+    affiliations:
+      - Institut des Substances et Organismes de la Mer, ISOMer, Nantes Université, UR 2160, F-44000 Nantes, France
+  - name: Philippe Rosa
+    corresponding: false
+    roles: 
+      - Data acquisition
+      - Revision
+    affiliations:
+      - Institut des Substances et Organismes de la Mer, ISOMer, Nantes Université, UR 2160, F-44000 Nantes, France
+  - name: Laurent Barillé
+    corresponding: false
+    roles: 
+      - Investigation
+      - Data acquisition
+      - Revision
+    affiliations:
+      - Institut des Substances et Organismes de la Mer, ISOMer, Nantes Université, UR 2160, F-44000 Nantes, France
+keywords:
+  - Drone
+  - Remote Sensing
+  - Coastal Ecosystems
+  - Archeology
+  - LiDAR
+abstract: |
+  coucou
+plain-language-summary: 
+key-points:
+  - A review of drone technologies applied to coastal ecology, 
+date: last-modified
+citation:
+  container-title: Journal of photogrammetry and Remote Sensing
+number-sections: true
+notebook-links: false
+editor_options: 
+  chunk_output_type: console
+csl: RSE.csl
+---
