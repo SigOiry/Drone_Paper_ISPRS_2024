@@ -271,42 +271,41 @@ ggsave("Figures/High_res/Figure1/Map_Noirmoutier.png",Noirmoutier_plot,width= 10
 #| warning: false
 
 
-masks_Noirmoutier <- "Data/shp/Figure1/Noirmoutier_masks_32630.shp"%>% 
+masks_Vigo <- "Data/shp/Figure1/Vigo_masks_32629.shp"%>% 
   read_sf()
 
-Flight_Noirmoutier <- "Data/shp/Figure1/Noirmoutier_flight_area_32630.shp"%>% 
+Flight_Vigo <- "Data/shp/Figure1/Vigo_flight_area_32629.shp"%>% 
   read_sf()
 
-Flight_label<-data.frame(
+Flight_label_Vigo<-data.frame(
   Name=c(
-  "Polycheate reef") ,
+  "Goose barnacle mapping") ,
   Description = c("Multispectral and LiDAR mapping"),
-  Long=c(-2.17503) ,
-  Lat=c(46.90546) 
+  Long=c(-8.862174) ,
+  Lat=c(42.121263) 
   )  %>% 
   st_as_sf(coords=c("Long","Lat") )  %>% 
   st_set_crs("EPSG:4326")  %>% 
-  st_transform(crs(masks_Noirmoutier))  %>% 
+  st_transform(crs(masks_Vigo))  %>% 
   dplyr::mutate(lon = sf::st_coordinates(.) [,1],
                 lat = sf::st_coordinates(.) [,2]) %>% 
   sf::st_set_geometry(NULL)
 
-plot_label_Noirmoutier <- data.frame(x = -2.3,
-                         y = 47.04) %>% 
+plot_label_Vigo <- data.frame(x = -8.875,
+                         y = 42.145) %>% 
   st_as_sf(coords=c("x","y")) %>% 
   st_set_crs("EPSG:4326")  %>% 
   st_transform(crs(masks_Noirmoutier)) %>% 
   st_coordinates()
 
-Noirmoutier_plot <-
-ggplot() +
+Vigo_plot <- ggplot() +
   scale_fill_manual("", labels = c("Flight area","Intertidal area", "Land area"),
                     values = c("darkred","#7DC27D", "#CFCFCF"))+
-  geom_sf(data = masks_Noirmoutier, mapping = aes(fill = Type),linewidth=0.05,alpha=0.93,colour="grey30")+
-  geom_sf(data = Flight_Noirmoutier, mapping = aes(fill = Type),linewidth=0.05,alpha=0.93)+
-      coord_sf(xlim=c(551000,569800),
-               ylim=c(5191700,16800+5193700))+
-  ggforce::geom_mark_ellipse(data=Flight_label,
+  geom_sf(data = masks_Vigo, mapping = aes(fill = Type),linewidth=0.05,alpha=0.93,colour="grey30")+
+  geom_sf(data = Flight_Vigo, mapping = aes(fill = Type),linewidth=0.05,alpha=0.93)+
+      coord_sf(xlim=c(509877,514679),
+               ylim=c(4661398, 4661398 + 4802))+
+  ggforce::geom_mark_ellipse(data=Flight_label_Vigo,
                  aes(x=lon,
                      y=lat,
                      label = Name,
@@ -328,8 +327,8 @@ ggplot() +
   theme_Bede_Map()+
   labs(x="Longitude",
        y="Latitude")+
-  geom_label(aes(x = plot_label_Noirmoutier[1], y = plot_label_Noirmoutier[2], label = "A"), size = 20)+
-  scale_x_continuous(breaks = seq(-2.30, -2.0, by = 0.10))+
+  geom_label(aes(x = plot_label_Vigo[1], y = plot_label_Vigo[2], label = "B"), size = 20)+
+  scale_x_continuous(breaks = seq(-8.9, -8.80, by = 0.02))+
   theme(plot.margin = unit(c(0.1,0.1,0.1,0.1), "cm") ,
         legend.position = "none",
         axis.title = element_blank(),
@@ -337,7 +336,7 @@ ggplot() +
         axis.text.y = element_text(size = 20))
 
 
-ggsave("Figures/High_res/Figure1/Map_Noirmoutier.png",Noirmoutier_plot,width= 10, height=10)  
+ggsave("Figures/High_res/Figure1/Map_Vigo.png",Vigo_plot,width= 10, height=10)  
 
 
 ```
