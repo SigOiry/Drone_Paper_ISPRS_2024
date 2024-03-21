@@ -26,6 +26,7 @@ resources:
   - "!*.ipynb"
   - "!*.out.ipynb"
   - "!*.embed.ipynb"
+  - "Data/."
 
 bibliography: library.bib
 

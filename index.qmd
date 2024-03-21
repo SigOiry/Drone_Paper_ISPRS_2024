@@ -60,6 +60,8 @@ library(rnaturalearthdata)
 library(rnaturalearthhires)
 library(tidyverse)
 library(Utilities.Package)
+library(patchwork)
+library(tidyterra)
 
 ```
 
@@ -157,13 +159,13 @@ p1 <-
                      y=lat,
                      label = ID,
                      description=Site) ,
-                 linewidth=0.3,
+                 linewidth=0.2,
                  fill="goldenrod",
                  show.legend=F,
                  label.hjust = 0.5,
-                 con.size = 2,
+                 con.size = 1,
                  con.colour = "goldenrod4",
-                 label.fontsize = c(25,20),
+                 label.fontsize = c(20,15),
                  alpha=0.8,
   expand = unit(2, "mm") , 
   radius = unit(2, "mm") , 
@@ -174,14 +176,16 @@ p1 <-
   labs(x="Longitude",
        y="Latitude")+
   scale_y_continuous(labels=scaleFUN)+
-  theme(plot.margin = unit(c(0.1,0.1,0.1,0.1), "cm"),
+  theme(plot.margin = margin(t = 0.1, r = 2, b = 0.1, l = 0.1, "cm"),
         axis.title = element_blank(),
         axis.text.x = element_text(size = 20),
-        axis.text.y = element_text(size = 20) )
+        axis.text.y = element_text(size = 20),
+        # panel.background = element_rect(fill = "white"),
+        plot.background = element_rect(fill = "white"))
 
 
 
-ggsave("Figures/High_res/Figure1/Map_Study_Site.png",p1,width= 10, height=10)  
+ggsave("Figures/High_res/Figure1/Map_Study_Site.tiff",p1,width= 10, height=5)  
 
 
 ```
@@ -213,11 +217,10 @@ Flight_label<-data.frame(
                 lat = sf::st_coordinates(.) [,2]) %>% 
   sf::st_set_geometry(NULL)
 
-plot_label_Noirmoutier <- data.frame(x = -2.3,
-                         y = 47.04) %>% 
+plot_label_Noirmoutier <- data.frame(x = 551000+((569800-551000)*0.05),
+                         y = 5210500-((5210500-5191700)*0.05)) %>% 
   st_as_sf(coords=c("x","y")) %>% 
-  st_set_crs("EPSG:4326")  %>% 
-  st_transform(crs(masks_Noirmoutier)) %>% 
+  st_set_crs(crs(masks_Noirmoutier)) %>% 
   st_coordinates()
 
 Noirmoutier_plot <-
@@ -225,7 +228,7 @@ ggplot() +
   scale_fill_manual("", labels = c("Flight area","Intertidal area", "Land area"),
                     values = c("darkred","#7DC27D", "#CFCFCF"))+
   geom_sf(data = masks_Noirmoutier, mapping = aes(fill = Type),linewidth=0.05,alpha=0.93,colour="grey30")+
-  geom_sf(data = Flight_Noirmoutier, mapping = aes(fill = Type),linewidth=0.05,alpha=0.93)+
+  geom_sf(data = Flight_Noirmoutier, mapping = aes(fill = Type),linewidth=0.05,alpha=0.80)+
       coord_sf(xlim=c(551000,569800),
                ylim=c(5191700,16800+5193700))+
   ggforce::geom_mark_ellipse(data=Flight_label,
@@ -257,10 +260,11 @@ ggplot() +
         legend.position = "none",
         axis.title = element_blank(),
         axis.text.x = element_text(size = 20),
-        axis.text.y = element_text(size = 20))
+        axis.text.y = element_text(size = 20),
+        plot.background = element_rect(fill = "white"))
 
 
-ggsave("Figures/High_res/Figure1/Map_Noirmoutier.png",Noirmoutier_plot,width= 10, height=10)  
+ggsave("Figures/High_res/Figure1/Map_Noirmoutier.tiff",Noirmoutier_plot,width= 10, height=10)  
 
 
 ```
@@ -278,6 +282,7 @@ masks_Vigo <- "Data/shp/Figure1/Vigo_masks_32629.shp"%>%
 Flight_Vigo <- "Data/shp/Figure1/Vigo_flight_area_32629.shp"%>% 
   read_sf()
 
+
 Flight_label_Vigo<-data.frame(
   Name=c(
   "Baiona") ,
@@ -292,19 +297,18 @@ Flight_label_Vigo<-data.frame(
                 lat = sf::st_coordinates(.) [,2]) %>% 
   sf::st_set_geometry(NULL)
 
-plot_label_Vigo <- data.frame(x = -8.875,
-                         y = 42.145) %>% 
+plot_label_Vigo <- data.frame(x = 509877+((514679-509877)*0.05),
+                         y = 4666200-((4666200-4661398)*0.05)) %>% 
   st_as_sf(coords=c("x","y")) %>% 
-  st_set_crs("EPSG:4326")  %>% 
-  st_transform(crs(masks_Noirmoutier)) %>% 
+  st_set_crs(crs(masks_Vigo)) %>% 
   st_coordinates()
 
 Vigo_plot <- ggplot() +
   scale_fill_manual("", labels = c("Flight area","Intertidal area", "Land area"),
                     values = c("darkred","#7DC27D", "#CFCFCF"))+
   geom_sf(data = masks_Vigo, mapping = aes(fill = Type),linewidth=0.05,alpha=0.93,colour="grey30")+
-  geom_sf(data = Flight_Vigo, mapping = aes(fill = Type),linewidth=0.05,alpha=0.93)+
-      coord_sf(xlim=c(509877,514679),
+  geom_sf(data = Flight_Vigo, mapping = aes(fill = Type),linewidth=0.05,alpha=0.80)+
+  coord_sf(xlim=c(509877,514679),
                ylim=c(4661398, 4661398 + 4802))+
   ggforce::geom_mark_ellipse(data=Flight_label_Vigo,
                  aes(x=lon,
@@ -331,14 +335,17 @@ Vigo_plot <- ggplot() +
        y="Latitude")+
   geom_label(aes(x = plot_label_Vigo[1], y = plot_label_Vigo[2], label = "B"), size = 20)+
   scale_x_continuous(breaks = seq(-8.9, -8.80, by = 0.02))+
+  scale_y_continuous(position = "right")+
+
   theme(plot.margin = unit(c(0.1,0.1,0.1,0.1), "cm") ,
         legend.position = "none",
         axis.title = element_blank(),
         axis.text.x = element_text(size = 20),
-        axis.text.y = element_text(size = 20))
+        axis.text.y = element_text(size = 20),
+        plot.background = element_rect(fill = "white"))
 
 
-ggsave("Figures/High_res/Figure1/Map_Vigo.png",Vigo_plot,width= 10, height=10)  
+ggsave("Figures/High_res/Figure1/Map_Vigo.tiff",Vigo_plot,width= 10, height=10)  
 
 
 ```
@@ -368,11 +375,10 @@ Flight_label_Cadiz<-data.frame(
                 lat = sf::st_coordinates(.) [,2]) %>% 
   sf::st_set_geometry(NULL)
 
-plot_label_Cadiz <- data.frame(x = -6.8,
-                         y = 37.15) %>% 
+plot_label_Cadiz <- data.frame(x = 691004+((774599-691004)*0.05),
+                         y = 4116948-((4116948-4033353)*0.05)) %>% 
   st_as_sf(coords=c("x","y")) %>% 
-  st_set_crs("EPSG:4326")  %>% 
-  st_transform(crs(masks_Cadiz)) %>% 
+  st_set_crs(crs(masks_Cadiz)) %>% 
   st_coordinates()
 
 Cadiz_plot <- ggplot() +
@@ -406,14 +412,16 @@ Cadiz_plot <- ggplot() +
        y="Latitude")+
   geom_label(aes(x = plot_label_Cadiz[1], y = plot_label_Cadiz[2], label = "C"), size = 20)+
   scale_x_continuous(breaks = seq(-6.9, -5.9, by = 0.4))+
+  scale_y_continuous(breaks = seq(36.45, 37.25, by = 0.2))+
   theme(plot.margin = unit(c(0.1,0.1,0.1,0.1), "cm") ,
         legend.position = "none",
         axis.title = element_blank(),
         axis.text.x = element_text(size = 20),
-        axis.text.y = element_text(size = 20))
+        axis.text.y = element_text(size = 20),
+        plot.background = element_rect(fill = "white"))
 
 
-ggsave("Figures/High_res/Figure1/Map_Cadiz.png",Cadiz_plot,width= 10, height=10)  
+ggsave("Figures/High_res/Figure1/Map_Cadiz.tiff",Cadiz_plot,width= 10, height=10)  
 
 
 ```
@@ -428,6 +436,8 @@ ggsave("Figures/High_res/Figure1/Map_Cadiz.png",Cadiz_plot,width= 10, height=10)
 masks_Tainaron <- "Data/shp/Figure1/Tainaron_masks_32634.shp"%>% 
   read_sf()
 
+Flight_Tainaron <- "Data/shp/Figure1/Tainaron_flight_area_32634.shp"%>% 
+  read_sf()
 
 Flight_label_Tainaron<-data.frame(
   Name=c(
@@ -443,18 +453,17 @@ Flight_label_Tainaron<-data.frame(
                 lat = sf::st_coordinates(.) [,2]) %>% 
   sf::st_set_geometry(NULL)
 
-plot_label_Tainaron <- data.frame(x = -6.8,
-                         y = 37.15) %>% 
+plot_label_Tainaron <- data.frame(x = 630943+((635617-630943)*0.05),
+                         y = 4032305-((4032305-4027631)*0.05)) %>% 
   st_as_sf(coords=c("x","y")) %>% 
-  st_set_crs("EPSG:4326")  %>% 
-  st_transform(crs(masks_Cadiz)) %>% 
+  st_set_crs(crs(masks_Tainaron)) %>% 
   st_coordinates()
 
 Tainaron_plot <- ggplot() +
-  scale_fill_manual("", labels = c("Land area"),
-                    values = c("#CFCFCF"))+
+  scale_fill_manual("", labels = c("Flight area","Land area"),
+                    values = c("darkred","#CFCFCF"))+
   geom_sf(data = masks_Tainaron, mapping = aes(fill = Type),linewidth=0.05,alpha=0.93,colour="grey30")+
-  # geom_sf(data = Flight_Vigo, mapping = aes(fill = Type),linewidth=0.05,alpha=0.93)+
+  geom_sf(data = Flight_Tainaron, mapping = aes(fill = Type),linewidth=0.05,alpha=0.80)+
       coord_sf(xlim=c(630943,635617),
                ylim=c(4027631, 4027631 + 4674))+
   ggforce::geom_mark_ellipse(data=Flight_label_Tainaron,
@@ -479,16 +488,17 @@ Tainaron_plot <- ggplot() +
   theme_Bede_Map()+
   labs(x="Longitude",
        y="Latitude")+
-  geom_label(aes(x = plot_label_Cadiz[1], y = plot_label_Cadiz[2], label = "C"), size = 20)+
-  scale_x_continuous(breaks = seq(-6.9, -5.9, by = 0.4))+
+  geom_label(aes(x = plot_label_Tainaron[1], y = plot_label_Tainaron[2], label = "D"), size = 20)+
+  scale_x_continuous(breaks = seq(22.45, 22.52, by = 0.02))+
   theme(plot.margin = unit(c(0.1,0.1,0.1,0.1), "cm") ,
         legend.position = "none",
         axis.title = element_blank(),
         axis.text.x = element_text(size = 20),
-        axis.text.y = element_text(size = 20))
+        axis.text.y = element_text(size = 20),
+        plot.background = element_rect(fill = "white"))
 
 
-ggsave("Figures/High_res/Figure1/Map_Cadiz.png",Cadiz_plot,width= 10, height=10)  
+ggsave("Figures/High_res/Figure1/Map_Tainaron.tiff",Tainaron_plot,width= 10, height=10)  
 
 
 ```
@@ -500,22 +510,49 @@ ggsave("Figures/High_res/Figure1/Map_Cadiz.png",Cadiz_plot,width= 10, height=10)
 #| warning: false
 
 layout <- c(
-  patchwork::area(t = 1, l = 1, b = 10, r = 10),
-  patchwork::area(t = 1, l = 11, b = 10, r = 20),
+  patchwork::area(t = 1, l = 1, b = 10, r = 20),
   patchwork::area(t = 11, l = 1, b = 20, r = 10),
-  patchwork::area(t = 11, l = 11, b = 20, r = 20)
+  patchwork::area(t = 11, l = 11, b = 20, r = 20),
+  patchwork::area(t = 21, l = 1, b = 30, r = 10),
+  patchwork::area(t = 21, l = 11, b = 30, r = 20)
 )
-# plot(layout)
 
-Tot <- magick::image_ggplot(magick::image_read("Figures/High_res/Figure1/Map_Drone_Sites.png"), interpolate = T)
-BB <- magick::image_ggplot(magick::image_read("Figures/High_res/Figure1/Map_BB.png"), interpolate = T)
-Mor <- magick::image_ggplot(magick::image_read("Figures/High_res/Figure1/Map_Morbihan.png"), interpolate = T)
-Av <- magick::image_ggplot(magick::image_read("Figures/High_res/Figure1/Map_Aveiro.png"), interpolate = T)
+Tot <-  rast("Figures/High_res/Figure1/Map_Study_Site.tiff")
+ext(Tot)<-c(0,2,0,1)
+
+BB <-  rast("Figures/High_res/Figure1/Map_Noirmoutier.tiff")
+ext(BB)<-c(0,1,-1,0)
+
+Vig <-  rast("Figures/High_res/Figure1/Map_Vigo2.tif")
+ext(Vig)<-c(1,2,-1,0)
+
+Cad <-  rast("Figures/High_res/Figure1/Map_Cadiz.tiff")
+ext(Cad)<-c(0,1,-2,-1)
+
+Tai <- rast("Figures/High_res/Figure1/Map_Tainaron2.tiff")
+ext(Tai)<-c(1,2,-2,-1)
 
 
-a<-Tot+Mor+BB+Av+patchwork::plot_layout(design=layout)
+a<-ggplot()+
+    geom_spatraster_rgb(data = Tot, maxcell= 10e+7)+
+  geom_spatraster_rgb(data = BB, maxcell= 10e+7)+
+  geom_spatraster_rgb(data = Vig, maxcell= 10e+7)+
+  geom_spatraster_rgb(data = Cad, maxcell= 10e+7)+
+  geom_spatraster_rgb(data = Tai, maxcell= 10e+7)+
+  coord_equal()+
+  theme_void()+
+  theme(axis.text = element_blank(), 
+        axis.title = element_blank(), 
+        axis.ticks = element_blank(), 
+        axis.ticks.length = unit(0, "pt"),
+        panel.grid.major=element_blank(), 
+        panel.grid.minor=element_blank(), 
+        plot.margin = margin(0, 0, 0, 0, "pt"))
 
-ggsave("./Figures/High_res/Figure1/Fig1_Map_Drone_Sites.png",a, width= 10, height=10, dpi = 800)
+
+
+ggplot2::ggsave("./Figures/High_res/Figure1/Fig1_Map_Drone_Sites.png",a, dpi = 800)
+
 ```
 
 ```{r Figure1}
@@ -523,11 +560,11 @@ ggsave("./Figures/High_res/Figure1/Fig1_Map_Drone_Sites.png",a, width= 10, heigh
 #| echo: false
 #| warning: false
 #| fig-cap: >
-#|   Location of drone flights in France and Portugal. A: Gulf of Morbihan (Two sites), B: Bourngeuf Bay (Two sites), C: Ria de Aveiro Coastal Lagoon (Three sites). Green represents intertidal areas. 
+#|   Location of drone flights in France Spain and Greece A: Noirmoutier Island, B: Baiona, C: Guadalquivir river, D: Tainaron cape. Green represents intertidal areas. 
 #| label: fig-map
 #| out-width: "100%"
 
-knitr::include_graphics("./Figures/Low_res/Fig1_Map_Drone_Sites.png")
+knitr::include_graphics("./Figures/Low_res/Figure1/Fig1_Map_Drone_Sites.png")
 ```
 
 
