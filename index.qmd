@@ -1,5 +1,5 @@
 ---
-title: "PREPRINT -- Exploring diverse Applications of Drone Technology: From Active to Passive  Remote Sensing  -- PREPRINT."
+title: "DRAFT -- Exploring diverse Applications of Drone Technology: From Active to Passive  Remote Sensing  -- DRAFT"
 author:
   - name: Simon Oiry
     orcid: 0000-0001-7161-5246
@@ -523,22 +523,38 @@ ext(Tot)<-c(0,2,0,1)
 BB <-  rast("Figures/High_res/Figure1/Map_Noirmoutier.tiff")
 ext(BB)<-c(0,1,-1,0)
 
+BB_img<-rast("Data/Pictures/Polychaete_Reef_cropped.png")
+ext(BB_img)<-c(0.70,1,-0.3,0)
+
 Vig <-  rast("Figures/High_res/Figure1/Map_Vigo2.tif")
 ext(Vig)<-c(1,2,-1,0)
+
+Vig_img<-rast("Data/Pictures/Vigo_cropped.png")
+ext(Vig_img)<-c(1.584,1.884,-0.3,0)
 
 Cad <-  rast("Figures/High_res/Figure1/Map_Cadiz.tiff")
 ext(Cad)<-c(0,1,-2,-1)
 
+Cad_img<-rast("Data/Pictures/Guadalquivir_cropped.png")
+ext(Cad_img)<-c(0.70,1,-1.925,-1.625)
+
 Tai <- rast("Figures/High_res/Figure1/Map_Tainaron2.tiff")
 ext(Tai)<-c(1,2,-2,-1)
 
+Tai_img<-rast("Data/Pictures/Greece_cropped.png")
+ext(Tai_img)<-c(1.584,1.884,-1.925,-1.625)
+
 
 a<-ggplot()+
-    geom_spatraster_rgb(data = Tot, maxcell= 10e+7)+
+  geom_spatraster_rgb(data = Tot, maxcell= 10e+7)+
   geom_spatraster_rgb(data = BB, maxcell= 10e+7)+
+  geom_spatraster_rgb(data = BB_img, maxcell= 10e+74)+
   geom_spatraster_rgb(data = Vig, maxcell= 10e+7)+
+  geom_spatraster_rgb(data = Vig_img, maxcell= 10e+7)+
   geom_spatraster_rgb(data = Cad, maxcell= 10e+7)+
+  geom_spatraster_rgb(data = Cad_img, maxcell= 10e+7)+
   geom_spatraster_rgb(data = Tai, maxcell= 10e+7)+
+  geom_spatraster_rgb(data = Tai_img, maxcell= 10e+7)+
   coord_equal()+
   theme_void()+
   theme(axis.text = element_blank(), 
@@ -549,7 +565,7 @@ a<-ggplot()+
         panel.grid.minor=element_blank(), 
         plot.margin = margin(0, 0, 0, 0, "pt"))
 
-
+a
 
 ggplot2::ggsave("./Figures/High_res/Figure1/Fig1_Map_Drone_Sites.png",a, dpi = 800)
 
