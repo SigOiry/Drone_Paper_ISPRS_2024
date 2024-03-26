@@ -994,10 +994,10 @@ Tai_img <- ggplot()+
 #   dplyr::mutate(lon = sf::st_coordinates(.) [,1],
 #                 lat = sf::st_coordinates(.) [,2]) %>% 
 #   sf::st_set_geometry(NULL)
-xmin_tainaron = 620943
-xmax_tainaron  = 645617
-ymin_tainaron  = 4027631
-ymax_tainaron  = 4052305
+xmin_tainaron = 630780
+xmax_tainaron  = 635780
+ymin_tainaron  = 4032631
+ymax_tainaron  = 4032631
   
 plot_label_tainaron  <- data.frame(x = xmin_tainaron +((xmax_tainaron -xmin_tainaron )*0.05),
                          y = ymax_tainaron -((ymax_tainaron -ymin_tainaron )*0.05)) %>%
@@ -1062,8 +1062,9 @@ Tainaron_plot <- ggplot() +
         
         plot.background = element_rect(fill = "white"))
 
-d <- Tainaron_plot / Tai_img
-ggsave("Figures/High_res/Figure1/V2/Map_Tainaron.tiff",Tainaron_plot,height= 10, width=10, dpi = 300)  
+Tainaron_plot
+# d <- Tainaron_plot / Tai_img
+ggsave("Figures/High_res/Figure1/V2/Map_Tainaron.tiff",Tainaron_plot,height= 10, width=10, dpi = 300)
 
 
 ```
