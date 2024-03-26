@@ -118,6 +118,147 @@ Projects<-data.frame(
   )  %>% 
   st_as_sf(coords=c("Long","Lat") )  %>% 
   st_set_crs("EPSG:4326")  %>% 
+  st_transform("+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs ") 
+
+Coords_axis<-data.frame(
+  Name=c(
+  "0°",
+  "10° E",
+  "20° E",
+  "40° N",
+  "45° N",
+  "50° N"),
+  Long=c(0.5,
+         10.5, 
+         20.5,
+         5,
+         5,
+         5) ,
+  Lat=c(47.5, 
+        47.5,
+        47.5,
+        40.5,
+        45.5,
+        50.5), 
+  angle=c(-90,-90,-90,0,0,0)
+  )  %>% 
+  st_as_sf(coords=c("Long","Lat") )  %>% 
+  st_set_crs("EPSG:4326")  %>% 
+  st_transform("+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs ")
+
+
+Projects_df<-Projects %>%
+  dplyr::mutate(lon = sf::st_coordinates(.) [,1],
+                lat = sf::st_coordinates(.) [,2]) %>% 
+  sf::st_set_geometry(NULL)  %>% 
+  tidyr::separate(Name, into=c("Country","Site") ,sep=" - ")  %>% 
+  dplyr::mutate(Country=as.factor(Country) ,
+                Site=as.factor(Site) ) 
+
+sf_use_s2(FALSE)
+
+bbox_EU <- st_bbox(c(xmin = -30, ymin = 20,
+                         xmax = 50, ymax = 70) ,
+                       crs = st_crs(european_union_map_cropped) ) 
+
+  MiniEU_map<-st_crop(european_union_map_cropped, bbox_EU)  %>% 
+  st_transform("+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs ")  
+
+  df_P1<-Projects_df %>% 
+    dplyr::mutate(ID = c(1:nrow(.)),
+           ID = case_when(ID == 1 ~ "C",
+                          ID == 2 ~ "B",
+                          ID == 3 ~ "A",
+                          TRUE ~ "D")) %>% 
+    dplyr::select(c(lon,lat,ID,Site))
+    
+    scaleFUN <- function(x) paste0(sprintf("%.2f", x),"°N")
+  
+
+p1 <-
+  ggplot(MiniEU_map) +
+  geom_sf(linewidth=0.2,alpha=0.93,
+          fill="#CFCFCF",colour="grey30")+
+  geom_sf_text(data = Coords_axis, aes(label = Name, angle = angle),alpha=0.93,colour="black", size = 5)+
+  coord_sf(xlim=c(2600000,5600000) ,
+          ylim=c(1600000,3100000))+
+    ggforce::geom_mark_ellipse(data=df_P1,
+                 aes(x=lon,
+                     y=lat,
+                     label = ID,
+                     description=Site) ,
+                 linewidth=0.2,
+                 fill="goldenrod",
+                 show.legend=F,
+                 label.hjust = 0.5,
+                 con.size = 1,
+                 con.colour = "goldenrod4",
+                 label.fontsize = c(15,10),
+                 alpha=0.8,
+  expand = unit(2, "mm") , 
+  radius = unit(2, "mm") , 
+  label.buffer = unit(5, "mm") ,
+  label.fill = "grey90")+
+  theme_Bede_Map()+
+  labs(x="Longitude",
+       y="Latitude")+
+  scale_y_continuous(labels=scaleFUN)+
+  theme(plot.margin = margin(t = 0.2, r = 0, b = 0.2, l = 0, "cm"),
+        axis.title = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        # panel.background = element_rect(fill = "white"),
+        plot.background = element_rect(fill = "white"))
+
+p1
+
+ggsave("Figures/High_res/Figure1/V2/Map_Study_Site.tiff",p1,width= 10, height=5, dpi = 300)  
+
+
+```
+
+```{r Figure1 Overall Map2}
+#| cache: true
+#| echo: false
+#| eval: false
+#| warning: false
+
+world_map <- sovereignty10 %>% 
+  st_as_sf()
+
+bbox_europe <- st_bbox(c(xmin = -20, ymin = 34,
+                         xmax = 30, ymax = 55) ,
+                       crs = st_crs(world_map)) 
+
+world_map<-st_make_valid(world_map) 
+
+european_union_country <- st_crop(world_map, bbox_europe)  %>% 
+  st_transform("+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs ") %>% 
+  dplyr::pull(unique(SOVEREIGNT))
+
+
+european_union_map_cropped <- sovereignty10 %>% 
+  st_as_sf() %>% 
+  dplyr::filter(SOVEREIGNT %in% european_union_country)
+
+Projects<-data.frame(
+  Name=c(
+  "Spain - Guadalquivir River",
+  "Spain - Baiona",
+  "France - Noirmoutier Island",
+  "Greece - Cape Tainaron"),
+  Long=c(-6.23104,
+         -8.86272, 
+         -2.16741,
+         22.486823) ,
+  Lat=c(36.8947, 
+        42.120795,
+        46.9076,
+        36.401765) 
+  )  %>% 
+  st_as_sf(coords=c("Long","Lat") )  %>% 
+  st_set_crs("EPSG:4326")  %>% 
   st_transform("+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs ")  
 
 Projects_df<-Projects %>%
@@ -153,7 +294,7 @@ p1 <-
   geom_sf(linewidth=0.5,alpha=0.93,
           fill="#CFCFCF",colour="grey30")+
   coord_sf(xlim=c(2600000,5600000) ,
-          ylim=c(1600000,3100000))+
+          ylim=c(1300000,4300000))+
     ggforce::geom_mark_ellipse(data=df_P1,
                  aes(x=lon,
                      y=lat,
@@ -175,17 +316,23 @@ p1 <-
   theme_Bede_Map()+
   labs(x="Longitude",
        y="Latitude")+
-  scale_y_continuous(labels=scaleFUN)+
-  theme(plot.margin = margin(t = 0.1, r = 2, b = 0.1, l = 0.1, "cm"),
+  scale_y_continuous(labels=scaleFUN, )+
+  
+  
+  theme(plot.margin = margin(t = 0, r = 0, b = 0, l = 0, "cm"),
         axis.title = element_blank(),
-        axis.text.x = element_text(size = 20),
-        axis.text.y = element_text(size = 20),
+        axis.ticks = element_blank(),
+        # axis.text.x = element_text(size = 25),
+        axis.text.x = element_blank(),
+        # axis.text.y = element_text(size = 25),
+        axis.text.y = element_blank(),
+
         # panel.background = element_rect(fill = "white"),
         plot.background = element_rect(fill = "white"))
 
 
 
-ggsave("Figures/High_res/Figure1/Map_Study_Site.tiff",p1,width= 10, height=5)  
+ggsave("Figures/High_res/Figure1/V2/Map_Study_Site.tiff",p1,width= 10, height=10, dpi = 300)  
 
 
 ```
@@ -335,7 +482,7 @@ sf_france <- read_sf("Data/shp/Figure1/world-administrative-boundaries.shp") %>%
   dplyr::filter(name == "France") %>% 
   ggplot()+
   geom_sf()+
-  geom_point(aes(x = -2.13494, y = 46.93734), size = 5, color = "red")+
+  geom_point(aes(x = -2.13494, y = 46.93734), size = 3, color = "red")+
   theme_void()
 
 BB_img <- ggplot()+
@@ -391,7 +538,7 @@ Noirmoutier_plot <-
 ggplot() +
   scale_fill_manual("", labels = c("Flight area","Intertidal area", "Land area"),
                     values = c("red","#7DC27D", "#CFCFCF"))+
-  geom_spatraster_rgb(data = img_Noirmoutier,max_col_value = 0.6)+
+  geom_spatraster_rgb(data = img_Noirmoutier,max_col_value = 0.6, maxcell = 10e+07)+
   # annotation_custom(ggplotGrob(BB_img),xmin = as.numeric(grob_img_Noirmoutier[1,1]), xmax = as.numeric(grob_img_Noirmoutier[2,1]), ymin = as.numeric(grob_img_Noirmoutier[1,2]),ymax = as.numeric(grob_img_Noirmoutier[2,2]))+
   annotation_custom(ggplotGrob(sf_france),xmin = as.numeric(thumb_France[1,1]), xmax = as.numeric(thumb_France[2,1]), ymin = as.numeric(thumb_France[1,2]),ymax = as.numeric(thumb_France[2,2]))+
 
@@ -425,18 +572,22 @@ ggplot() +
   theme_Bede_Map()+
   labs(x="Longitude",
        y="Latitude")+
-  geom_label(aes(x = plot_label_Noirmoutier[1], y = plot_label_Noirmoutier[2], label = "A"), size = 15)+
+  geom_label(aes(x = plot_label_Noirmoutier[1], y = plot_label_Noirmoutier[2], label = "A"), size = 10)+
   scale_x_continuous(breaks = seq(-2.30, -2.0, by = 0.10))+
-  theme(plot.margin = unit(c(0.1,0.1,0.1,0.1), "cm") ,
+  theme(plot.margin = unit(c(0,0,0,0), "cm") ,
         legend.position = "none",
         axis.title = element_blank(),
-        axis.text.x = element_text(size = 20),
-        axis.text.y = element_text(size = 20),
+        # axis.text.x = element_text(size = 12),
+        # axis.text.y = element_text(size = 12),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+
+        axis.ticks = element_blank(),
         plot.background = element_rect(fill = "white"))
 
 a<-Noirmoutier_plot + BB_img
 
-ggsave("Figures/High_res/Figure1/Map_Noirmoutier.tiff",a,width= 1920*2, height=1032*2, units = "px")  
+ggsave("Figures/High_res/Figure1/V2/Map_Noirmoutier.tiff",Noirmoutier_plot,width= 10, height=10, dpi = 300)  
 
 
 ```
@@ -589,11 +740,11 @@ sf_spain <- read_sf("Data/shp/Figure1/world-administrative-boundaries.shp") %>%
   geom_sf()+
   ylim(c(36,44))+
   xlim(c(-10,5))+
-  geom_point(aes(x = -8.861720, y = 42.121207), size = 5, color = "red")+
+  geom_point(aes(x = -8.861720, y = 42.121207), size = 3, color = "red")+
   theme_void()
 
 Vig_img <- ggplot()+
-  geom_spatraster_rgb(data = rast("Data/Pictures/Vigo_cropped.png"), maxcell = 10e7)+
+  geom_spatraster_rgb(data = rast("Data/Pictures/Vigo_cropped.png"), maxcell = 10e+07)+
   coord_equal()+
   theme_void()+
   scale_x_continuous(expand = c(0, 0))+
@@ -620,10 +771,10 @@ Vigo_segm <- data.frame(x = c(511260,509800,511287,509800),
 #   sf::st_set_geometry(NULL)
 
 
-xmin_vigo = 507877
+xmin_vigo = 510000
 xmax_vigo = 512679
-ymin_vigo = 4661398
-ymax_vigo = 4666200
+ymin_vigo = 4662000
+ymax_vigo = 4664679
 
 plot_label_Vigo <- data.frame(x = xmin_vigo+((xmax_vigo-xmin_vigo)*0.05),
                          y = ymax_vigo-((ymax_vigo-ymin_vigo)*0.05)) %>% 
@@ -634,19 +785,19 @@ plot_label_Vigo <- data.frame(x = xmin_vigo+((xmax_vigo-xmin_vigo)*0.05),
 thumb_Spain<-data.frame(x = c(xmin_vigo+((xmax_vigo-xmin_vigo)*0.8), xmin_vigo+((xmax_vigo-xmin_vigo)*1.05)),
                                    y = c(ymin_vigo+((ymax_vigo-ymin_vigo)*0.8), ymin_vigo+((ymax_vigo-ymin_vigo)*1.05))) %>% 
   st_as_sf(coords=c("x","y")) %>% 
-  st_set_crs(crs(masks_Noirmoutier)) %>% 
+  st_set_crs(crs(masks_Vigo)) %>% 
   st_coordinates()
 
 grob_img_Vigo <- data.frame(x = c(xmin_vigo-((xmax_vigo-xmin_vigo)*0.01), xmin_vigo+((xmax_vigo-xmin_vigo)*0.40)),
                                    y = c(ymin_vigo-((ymax_vigo-ymin_vigo)*0.01), ymin_vigo+((ymax_vigo-ymin_vigo)*0.40))) %>% 
   st_as_sf(coords=c("x","y")) %>% 
-  st_set_crs(crs(masks_Noirmoutier)) %>% 
+  st_set_crs(crs(masks_Vigo)) %>% 
   st_coordinates()
 
 Vigo_plot <- ggplot() +
   scale_fill_manual("", labels = c("Flight area","Intertidal area", "Land area"),
                     values = c("red","#7DC27D", "#CFCFCF"))+
-geom_spatraster_rgb(data = img_Vigo,maxcell = 5e+05,max_col_value = 0.6)+
+geom_spatraster_rgb(data = img_Vigo,maxcell = 10e+07,max_col_value = 0.6)+
   # annotation_custom(ggplotGrob(Vig_img),xmin = as.numeric(grob_img_Vigo[1,1]), xmax = as.numeric(grob_img_Vigo[2,1]), ymin = as.numeric(grob_img_Vigo[1,2]),ymax = as.numeric(grob_img_Vigo[2,2]))+
   annotation_custom(ggplotGrob(sf_spain),xmin = as.numeric(thumb_Spain[1,1]), xmax = as.numeric(thumb_Spain[2,1]), ymin = as.numeric(thumb_Spain[1,2]),ymax = as.numeric(thumb_Spain[2,2]))+
   geom_sf(data = Flight_Vigo, mapping = aes(fill = Type),linewidth=0.05,alpha=0.80)+
@@ -677,21 +828,25 @@ geom_spatraster_rgb(data = img_Vigo,maxcell = 5e+05,max_col_value = 0.6)+
   theme_Bede_Map()+
   labs(x="Longitude",
        y="Latitude")+
-  geom_label(aes(x = plot_label_Vigo[1], y = plot_label_Vigo[2], label = "B"), size = 15)+
+  geom_label(aes(x = plot_label_Vigo[1], y = plot_label_Vigo[2], label = "B"), size = 10)+
   geom_label(aes(x = 512163, y =4662807, label = "Baiona"), fill = "white", alpha = 0.3, size = 6)+
   scale_x_continuous(breaks = seq(-8.9, -8.80, by = 0.02))+
   scale_y_continuous(position = "right")+
 
-  theme(plot.margin = unit(c(0.1,0.1,0.1,0.1), "cm") ,
+  theme(plot.margin = unit(c(0,0,0,0), "cm") ,
         legend.position = "none",
         axis.title = element_blank(),
-        axis.text.x = element_text(size = 20),
-        axis.text.y = element_text(size = 20),
+        # axis.text.x = element_text(size = 12),
+        # axis.text.y = element_text(size = 12),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+
+        axis.ticks = element_blank(),
         plot.background = element_rect(fill = "white"))
 
 b <- Vigo_plot+Vig_img
 
-ggsave("Figures/High_res/Figure1/Map_Vigo.tiff",b,width= 1920*2, height=1032*2, units = "px")  
+ggsave("Figures/High_res/Figure1/V2/Map_Vigo.tiff",Vigo_plot,width=10, height=10, dpi = 300)  
 
 
 ```
@@ -714,11 +869,11 @@ sf_spain <- read_sf("Data/shp/Figure1/world-administrative-boundaries.shp") %>%
   geom_sf()+
   ylim(c(36,44))+
   xlim(c(-10,5))+
-  geom_point(aes(x = -6.23469, y = 36.892621), size = 5, color = "red")+
+  geom_point(aes(x = -6.23469, y = 36.892621), size = 3, color = "red")+
   theme_void()
 
 Cad_img <- ggplot()+
-  geom_spatraster_rgb(data = rast("Data/Pictures/Guadalquivir_cropped.png"), maxcell = 10e7)+
+  geom_spatraster_rgb(data = rast("Data/Pictures/Guadalquivir_cropped.png"), maxcell = 10e+07)+
   coord_equal()+
   theme_void()+
   scale_x_continuous(expand = c(0, 0))+
@@ -777,21 +932,24 @@ Cadiz_plot <- ggplot() +
   theme_Bede_Map()+
   labs(x="Longitude",
        y="Latitude")+
-  geom_label(aes(x = plot_label_cadiz[1], y = plot_label_cadiz[2], label = "C"), size = 15)+
+  geom_label(aes(x = plot_label_cadiz[1], y = plot_label_cadiz[2], label = "C"), size = 10)+
+  geom_label(aes(x = 743489, y =4044725, label = "Cadiz"), fill = "white", alpha = 0.3, size = 6)+
   scale_x_continuous(breaks = seq(-6.9, -5.9, by = 0.4))+
   scale_y_continuous(breaks = seq(36.45, 37.25, by = 0.2))+
-  theme(plot.margin = unit(c(0.1,0.1,0.1,0.1), "cm") ,
+  theme(plot.margin = unit(c(0,0,0,0), "cm") ,
         legend.position = "none",
         axis.title = element_blank(),
-        axis.text.x = element_text(size = 20),
-        axis.text.y = element_text(size = 20),
+        # axis.text.x = element_text(size = 12),
+        # axis.text.y = element_text(size = 12),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+
+        axis.ticks = element_blank(),
         plot.background = element_rect(fill = "white"))
 
 c <- Cadiz_plot + Cad_img
 
-ggsave("Figures/High_res/Figure1/Map_Cadiz.tiff",width= 1920*2, height=1032*2, units = "px")  
-
-
+ggsave("Figures/High_res/Figure1/V2/Map_Cadiz.tiff",Cadiz_plot,width= 10, height=10, dpi = 300)  
 ```
 
 ```{r Figure1 Tainaron}
@@ -813,11 +971,11 @@ sf_greece <- read_sf("Data/shp/Figure1/world-administrative-boundaries.shp") %>%
   dplyr::filter(name == "Greece") %>% 
   ggplot()+
   geom_sf()+
-  geom_point(aes(x = 22.485871, y = 36.39978), size = 5, color = "red")+
+  geom_point(aes(x = 22.485871, y = 36.39978), size = 3, color = "red")+
   theme_void()
 
 Tai_img <- ggplot()+
-  geom_spatraster_rgb(data = rast("Data/Pictures/Greece_cropped.png"), maxcell = 10e7)+
+  geom_spatraster_rgb(data = rast("Data/Pictures/Greece_cropped.png"), maxcell = 10e+07)+
   coord_equal()+
   theme_void()+
   scale_x_continuous(expand = c(0, 0))+
@@ -890,17 +1048,22 @@ Tainaron_plot <- ggplot() +
   theme_Bede_Map()+
   labs(x="Longitude",
        y="Latitude")+
-  geom_label(aes(x = plot_label_tainaron[1], y = plot_label_tainaron[2], label = "D"), size = 20)+
-  scale_x_continuous(breaks = seq(22.45, 22.52, by = 0.02))+
-  theme(plot.margin = unit(c(0.1,0.1,0.1,0.1), "cm") ,
+  geom_label(aes(x = plot_label_tainaron[1], y = plot_label_tainaron[2], label = "D"), size = 10)+
+  scale_x_continuous(breaks = seq(22.35, 22.60, by = 0.1))+
+  theme(plot.margin = unit(c(0,0,0,0), "cm") ,
         legend.position = "none",
         axis.title = element_blank(),
-        axis.text.x = element_text(size = 20),
-        axis.text.y = element_text(size = 20),
+        # axis.text.x = element_text(size = 12),
+        # axis.text.y = element_text(size = 12),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+
+        axis.ticks = element_blank(),
+        
         plot.background = element_rect(fill = "white"))
 
 d <- Tainaron_plot / Tai_img
-ggsave("Figures/High_res/Figure1/Map_Tainaron.tiff",d,height= 1920*2, width=1032*2, units = "px")  
+ggsave("Figures/High_res/Figure1/V2/Map_Tainaron.tiff",Tainaron_plot,height= 10, width=10, dpi = 300)  
 
 
 ```
@@ -911,65 +1074,121 @@ ggsave("Figures/High_res/Figure1/Map_Tainaron.tiff",d,height= 1920*2, width=1032
 #| eval: false
 #| warning: false
 
-layout <- c(
-  patchwork::area(t = 1, l = 1, b = 10, r = 20),
-  patchwork::area(t = 11, l = 1, b = 20, r = 10),
-  patchwork::area(t = 11, l = 11, b = 20, r = 20),
-  patchwork::area(t = 21, l = 1, b = 30, r = 10),
-  patchwork::area(t = 21, l = 11, b = 30, r = 20)
-)
 
-Tot <-  rast("Figures/High_res/Figure1/Map_Study_Site.tiff")
-ext(Tot)<-c(0,2,0,1)
+all <- rast("Figures/High_res/Figure1/V2/Map_Study_Site.tiff")
+BB <- rast("Figures/High_res/Figure1/V2/Map_Noirmoutier.tiff")
+BB_img <- rast("Data/Pictures/Polychaete_Reef_cropped.png")
+Vigo <- rast("Figures/High_res/Figure1/V2/Map_Vigo.tiff")
+Vigo_img <- rast("Data/Pictures/Vigo_cropped.png")
+Cadiz <- rast("Figures/High_res/Figure1/V2/Map_Cadiz.tiff")
+Cadiz_img <- rast("Data/Pictures/Guadalquivir_cropped.png")
+Tainaron <- rast("Figures/High_res/Figure1/V2/Map_Tainaron.tiff")
+Tainaron_img <- rast("Data/Pictures/Greece_cropped.png")
 
-BB <-  rast("Figures/High_res/Figure1/Map_Noirmoutier.tiff")
-ext(BB)<-c(0,1,-1,0)
+ext(BB) <- c(0,10,22,32)
+ext(BB_img) <- c(10,20,22,32)
 
-BB_img<-rast("Data/Pictures/Polychaete_Reef_cropped.png")
-ext(BB_img)<-c(0.70,1,-0.3,0)
+ext(Vigo) <- c(0,10,11,21)
+ext(Vigo_img) <- c(10,20,11,21)
 
-Vig <-  rast("Figures/High_res/Figure1/Map_Vigo2.tif")
-ext(Vig)<-c(1,2,-1,0)
+ext(Cadiz) <- c(0,10,0,10)
+ext(Cadiz_img) <- c(10,20,0,10)
 
-Vig_img<-rast("Data/Pictures/Vigo_cropped.png")
-ext(Vig_img)<-c(1.584,1.884,-0.3,0)
-
-Cad <-  rast("Figures/High_res/Figure1/Map_Cadiz.tiff")
-ext(Cad)<-c(0,1,-2,-1)
-
-Cad_img<-rast("Data/Pictures/Guadalquivir_cropped.png")
-ext(Cad_img)<-c(0.70,1,-1.925,-1.625)
-
-Tai <- rast("Figures/High_res/Figure1/Map_Tainaron2.tiff")
-ext(Tai)<-c(1,2,-2,-1)
-
-Tai_img<-rast("Data/Pictures/Greece_cropped.png")
-ext(Tai_img)<-c(1.584,1.884,-1.925,-1.625)
+ext(Tainaron) <- c(24,34.5,11,21.5)
+ext(Tainaron_img) <- c(24,34.5,21.5,32)
 
 
-a<-ggplot()+
-  geom_spatraster_rgb(data = Tot, maxcell= 10e+7)+
-  geom_spatraster_rgb(data = BB, maxcell= 10e+7)+
-  geom_spatraster_rgb(data = BB_img, maxcell= 10e+74)+
-  geom_spatraster_rgb(data = Vig, maxcell= 10e+7)+
-  geom_spatraster_rgb(data = Vig_img, maxcell= 10e+7)+
-  geom_spatraster_rgb(data = Cad, maxcell= 10e+7)+
-  geom_spatraster_rgb(data = Cad_img, maxcell= 10e+7)+
-  geom_spatraster_rgb(data = Tai, maxcell= 10e+7)+
-  geom_spatraster_rgb(data = Tai_img, maxcell= 10e+7)+
+ext(all) <- c(24,34,0,10)
+
+ggplot()+
+  geom_spatraster_rgb(data = all)+
+  geom_spatraster_rgb(data = BB)+
+  geom_spatraster_rgb(data = BB_img)+
+  geom_spatraster_rgb(data = Vigo)+
+  geom_spatraster_rgb(data = Vigo_img)+
+  geom_spatraster_rgb(data = Cadiz)+
+  geom_spatraster_rgb(data = Cadiz_img)+
+  geom_spatraster_rgb(data = Tainaron)+
+  geom_spatraster_rgb(data = Tainaron_img)+
   coord_equal()+
-  theme_void()+
-  theme(axis.text = element_blank(), 
-        axis.title = element_blank(), 
-        axis.ticks = element_blank(), 
-        axis.ticks.length = unit(0, "pt"),
-        panel.grid.major=element_blank(), 
-        panel.grid.minor=element_blank(), 
-        plot.margin = margin(0, 0, 0, 0, "pt"))
+  # xlim(1.5,2.5)+
+  ylim(2.5,3.5)+
+  theme_void()
+  
 
-a
 
-ggplot2::ggsave("./Figures/High_res/Figure1/Fig1_Map_Drone_Sites.png",a, dpi = 800)
+  
+
+
+ggplot2::ggsave("./Figures/High_res/Figure1/Fig1_Map_Drone_Sites.png",plot, dpi = 800)
+
+
+
+
+
+
+```
+
+```{r Figure1 saving V2}
+#| cache: false
+#| echo: false
+#| eval: false
+#| warning: false
+
+
+all <- rast("Figures/High_res/Figure1/V2/Map_Study_Site.tiff")
+BB <- rast("Figures/High_res/Figure1/V2/Map_Noirmoutier.tiff")
+BB_img <- rast("Data/Pictures/Polychaete_Reef_cropped.png")
+Vigo <- rast("Figures/High_res/Figure1/V2/Map_Vigo.tiff")
+Vigo_img <- rast("Data/Pictures/Vigo_cropped.png")
+Cadiz <- rast("Figures/High_res/Figure1/V2/Map_Cadiz.tiff")
+Cadiz_img <- rast("Data/Pictures/Guadalquivir_cropped.png")
+Tainaron <- rast("Figures/High_res/Figure1/V2/Map_Tainaron.tiff")
+Tainaron_img <- rast("Data/Pictures/Greece_cropped.png")
+
+ext(BB_img) <- c(34,44,22,32)
+ext(BB) <-c(24,34,22,32)
+
+ext(Vigo_img) <- c(0,10,22,32)
+ext(Vigo) <- c(10,20,22,32)
+
+ext(Cadiz_img) <- c(0,10,11,21)
+ext(Cadiz) <- c(10,20,11,21)
+
+ext(Tainaron) <- c(24,34,11,21)
+ext(Tainaron_img) <- c(34,44,11,21)
+
+
+ext(all) <- c(15,28,17.5,24.5)
+
+ggplot()+
+  geom_spatraster_rgb(data = BB)+
+  geom_spatraster_rgb(data = BB_img)+
+  geom_spatraster_rgb(data = Vigo)+
+  geom_spatraster_rgb(data = Vigo_img)+
+  geom_spatraster_rgb(data = Cadiz)+
+  geom_spatraster_rgb(data = Cadiz_img)+
+  geom_spatraster_rgb(data = Tainaron)+
+  geom_spatraster_rgb(data = Tainaron_img)+
+  geom_spatraster_rgb(data = all)+
+  scale_x_continuous(expand = c(0, 0))+
+  scale_y_continuous(expand = c(0, 0))+
+  coord_equal()+
+  # xlim(1.5,2.5)+
+  # ylim(2.5,3.5)+
+  theme_void()
+  
+
+
+  
+
+
+# ggplot2::ggsave("./Figures/High_res/Figure1/Fig1_Map_Drone_Sites.png",plot, dpi = 800)
+
+
+
+
+
 
 ```
 
@@ -990,6 +1209,8 @@ knitr::include_graphics("./Figures/Low_res/Figure1/Fig1_Map_Drone_Sites.png")
 #| echo: false
 #| eval: false
 #| warning: false
+
+
 
 
 
