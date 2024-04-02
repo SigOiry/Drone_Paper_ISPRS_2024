@@ -246,16 +246,19 @@ Projects<-data.frame(
   Name=c(
   "Spain - Guadalquivir River",
   "Spain - Baiona",
-  "France - Noirmoutier Island",
-  "Greece - Cape Tainaron"),
+  "France - Noirmoutier Island"
+  # "Greece - Cape Tainaron"
+  ),
   Long=c(-6.23104,
          -8.86272, 
-         -2.16741,
-         22.486823) ,
+         -2.16741
+         # 22.486823
+         ) ,
   Lat=c(36.8947, 
         42.120795,
-        46.9076,
-        36.401765) 
+        46.9076
+        # 36.401765
+        ) 
   )  %>% 
   st_as_sf(coords=c("Long","Lat") )  %>% 
   st_set_crs("EPSG:4326")  %>% 
@@ -293,7 +296,7 @@ p1 <-
   ggplot(MiniEU_map) +
   geom_sf(linewidth=0.5,alpha=0.93,
           fill="#CFCFCF",colour="grey30")+
-  coord_sf(xlim=c(2600000,5600000) ,
+  coord_sf(xlim=c(2600000-500000,5600000-500000) ,
           ylim=c(1300000,4300000))+
     ggforce::geom_mark_ellipse(data=df_P1,
                  aes(x=lon,
@@ -1138,6 +1141,7 @@ ggplot2::ggsave("./Figures/High_res/Figure1/Fig1_Map_Drone_Sites.png",plot, dpi 
 
 
 all <- rast("Figures/High_res/Figure1/V2/Map_Study_Site.tiff")
+img_Drone <- rast("Data/Pictures/Drone_cropped.png")
 BB <- rast("Figures/High_res/Figure1/V2/Map_Noirmoutier.tiff")
 BB_img <- rast("Data/Pictures/Polychaete_Reef_cropped.png")
 Vigo <- rast("Figures/High_res/Figure1/V2/Map_Vigo.tiff")
@@ -1147,20 +1151,21 @@ Cadiz_img <- rast("Data/Pictures/Guadalquivir_cropped.png")
 Tainaron <- rast("Figures/High_res/Figure1/V2/Map_Tainaron.tiff")
 Tainaron_img <- rast("Data/Pictures/Greece_cropped.png")
 
-ext(BB_img) <- c(34,44,22,32)
-ext(BB) <-c(24,34,22,32)
+ext(Vigo_img) <- c(34,44,22,32)
+ext(Vigo) <-c(24,34,22,32)
 
-ext(Vigo_img) <- c(0,10,22,32)
-ext(Vigo) <- c(10,20,22,32)
+ext(BB) <- c(0,10,22,32)
+ext(BB_img) <- c(10,20,22,32)
 
-ext(Cadiz_img) <- c(0,10,11,21)
-ext(Cadiz) <- c(10,20,11,21)
+ext(Cadiz) <- c(0,10,11,21)
+ext(Cadiz_img) <- c(10,20,11,21)
 
 ext(Tainaron) <- c(24,34,11,21)
 ext(Tainaron_img) <- c(34,44,11,21)
 
+ext(img_Drone)<-c(34,44,11,21)
 
-ext(all) <- c(15,28,17.5,24.5)
+ext(all) <- c(24,34,11,21)
 
 ggplot()+
   geom_spatraster_rgb(data = BB)+
@@ -1169,14 +1174,15 @@ ggplot()+
   geom_spatraster_rgb(data = Vigo_img)+
   geom_spatraster_rgb(data = Cadiz)+
   geom_spatraster_rgb(data = Cadiz_img)+
-  geom_spatraster_rgb(data = Tainaron)+
-  geom_spatraster_rgb(data = Tainaron_img)+
+  geom_spatraster_rgb(data = img_Drone)+
+  # geom_spatraster_rgb(data = Tainaron)+
+  # geom_spatraster_rgb(data = Tainaron_img)+
   geom_spatraster_rgb(data = all)+
   scale_x_continuous(expand = c(0, 0))+
   scale_y_continuous(expand = c(0, 0))+
-  coord_equal()+
+  coord_equal(xlim = c(-5,44))+
   # xlim(1.5,2.5)+
-  # ylim(2.5,3.5)+
+  xlim(-5,44)+
   theme_void()
   
 
@@ -1214,6 +1220,239 @@ knitr::include_graphics("./Figures/Low_res/Figure1/Fig1_Map_Drone_Sites.png")
 
 
 
+
+```
+
+## Site study 2
+
+```{r Study Sites }
+#| cache: true
+#| echo: false
+#| eval: false
+#| warning: false
+
+world_map <- sovereignty10 %>% 
+  st_as_sf()
+
+bbox_europe <- st_bbox(c(xmin = -20, ymin = 30,
+                         xmax = 30, ymax = 60) ,
+                       crs = st_crs(world_map)) 
+
+world_map<-st_make_valid(world_map) 
+
+european_union_country <- st_crop(world_map, bbox_europe)  %>% 
+  st_transform("+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs ") %>% 
+  filter(CONTINENT == "Europe") %>% 
+  dplyr::pull(unique(SOVEREIGNT))
+
+
+european_union_map_cropped <- sovereignty10 %>% 
+  st_as_sf() %>% 
+  dplyr::filter(SOVEREIGNT %in% european_union_country)
+
+Projects<-data.frame(
+  Name=c(
+  "Spain - Guadalquivir River",
+  "Spain - Baiona",
+  "France - Noirmoutier Island"
+  # "Greece - Cape Tainaron"
+  ),
+  Long=c(-6.23104,
+         -8.86272, 
+         -2.16741
+         # 22.486823
+         ) ,
+  Lat=c(36.8947, 
+        42.120795,
+        46.9076
+        # 36.401765
+        ) 
+  )  %>% 
+  st_as_sf(coords=c("Long","Lat") )  %>% 
+  st_set_crs("EPSG:4326")  %>% 
+  st_transform("+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs ")  
+
+Projects_df<-Projects %>%
+  dplyr::mutate(lon = sf::st_coordinates(.) [,1],
+                lat = sf::st_coordinates(.) [,2]) %>% 
+  sf::st_set_geometry(NULL)  %>% 
+  tidyr::separate(Name, into=c("Country","Site") ,sep=" - ")  %>% 
+  dplyr::mutate(Country=as.factor(Country) ,
+                Site=as.factor(Site) ) 
+
+sf_use_s2(FALSE)
+
+bbox_EU <- st_bbox(c(xmin = -30, ymin = 20,
+                         xmax = 50, ymax = 70) ,
+                       crs = st_crs(european_union_map_cropped) ) 
+
+  # MiniEU_map<-st_crop(european_union_map_cropped, bbox_EU)  %>% 
+  # st_transform("+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs ")  
+  MiniEU_map<-european_union_map_cropped %>%
+  st_transform("+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs ")
+
+  df_P1<-Projects_df %>% 
+    dplyr::mutate(ID = c(1:nrow(.)),
+           ID = case_when(ID == 1 ~ "C",
+                          ID == 2 ~ "B",
+                          ID == 3 ~ "A",
+                          TRUE ~ "D")) %>% 
+    dplyr::select(c(lon,lat,ID,Site))
+    
+    scaleFUN <- function(x) paste0(sprintf("%.2f", x),"°N")
+  
+    
+MiniEU_map2 <- MiniEU_map %>% 
+  filter(!SOVEREIGNT %in% c("Poland", "Russia", "Biolorussia", "Lithuania","Estonia","Letonia", "Finland","Sweden","Norway","Latvia","Slovakia", "Hungary", "Republic of Serbia","Montenegro","Albania","Romania",""))
+
+p1 <-
+  ggplot(MiniEU_map2) +
+  geom_sf(linewidth=0.2,alpha=0.93,
+          fill="#CFCFCF",colour="grey30")+
+  coord_sf(xlim=c(2100000,5000000) ,
+          ylim=c(1200000,4100000))+
+    ggforce::geom_mark_ellipse(data=df_P1,
+                 aes(x=lon,
+                     y=lat,
+                     # label = ID,
+                     description=ID
+                     ) ,
+                 linewidth=0.1,
+                 fill="red",
+                 show.legend=F,
+                 label.hjust = 0.5,
+                 con.size = 0.5,
+                 con.colour = "black",
+                 label.fontsize = c(15),
+                 alpha=0.8,
+  expand = unit(1, "mm") , 
+  radius = unit(1, "mm") , 
+  label.buffer = unit(5, "mm") ,
+  label.fill = "NA")+
+  theme_void()
+# 
+#   theme_Bede_Map()+
+#   labs(x="Longitude",
+#        y="Latitude")+
+#   scale_y_continuous(labels=scaleFUN, )+
+#   
+#   
+#   theme(plot.margin = margin(t = 0, r = 0, b = 0, l = 0, "cm"),
+#         axis.title = element_blank(),
+#         axis.ticks = element_blank(),
+#         # axis.text.x = element_text(size = 25),
+#         axis.text.x = element_blank(),
+#         # axis.text.y = element_text(size = 25),
+#         axis.text.y = element_blank(),
+# 
+#         # panel.background = element_rect(fill = "white"),
+#         plot.background = element_rect(fill = "white"))
+
+p1
+
+
+p2 <- ggplot()+
+  geom_text(aes(x = 0 , y = 4.5, label = "Study Sites"), hjust = 0, size = 9)+
+  geom_text(aes(x = 0 , y = 4.15, label = "3 sites in Europe"), color = "grey40", hjust = 0, size = 6.5)+
+  geom_text(aes(x = 0 , y = 3, label = "A"), color = "black", hjust = 0, size = 9)+
+  geom_text(aes(x = 0 , y = 2, label = "B"), color = "black", hjust = 0, size = 9)+
+  geom_text(aes(x = 0 , y = 1, label = "C"), color = "black", hjust = 0, size = 9)+
+  geom_text(aes(x = 0.4 , y = 3.12, label = "France"), color = "black", hjust = 0, size = 6.5)+
+  geom_text(aes(x = 0.4 , y = 2.88, label = "Noirmoutier Island, Pays de La Loire"), color = "grey40", hjust = 0, size = 6.5)+
+  geom_text(aes(x = 0.4 , y = 2.12, label = "Spain"), color = "black", hjust = 0, size = 6.5)+
+  geom_text(aes(x = 0.4 , y = 1.88, label = "Baiona, Galicia"), color = "grey40", hjust = 0, size = 6.5)+
+  geom_text(aes(x = 0.4 , y = 1.12, label = "Spain"), color = "black", hjust = 0, size = 6.5)+
+  geom_text(aes(x = 0.4 , y = 0.88, label = "Guadalquivir River, Andalousia"), color = "grey40", hjust = 0, size = 6.5)+
+
+  xlim(c(0,10))+
+  ylim(c(0,5))+
+  annotation_custom(ggplotGrob(p1),xmin = 4, xmax = 11, ymin = -0.5,ymax = 5.5)+
+  theme_void()
+
+ggsave("Figures/High_res/Figure1_2/Study_Site.jpg", p2,height = 5, width = 10, dpi = 300)
+```
+
+
+```{r Noirmoutier}
+
+S2_Noirm <- "data/S2_images/Noirmoutier_2.tiff" %>% 
+  rast()
+img_Noirm <- "data/Pictures/Polychaete_Reef_cropped.png" %>% 
+  rast()
+ext(img_Noirm) <- c(5,10,0,5)
+
+
+
+df_Noirm <- data.frame(x = c(610219, 556268),
+                       y = c(5228912, 5205122), 
+                       label = c("Nantes", "Noirmoutier Island")
+                       )
+df_site_Noirm <- data.frame(x = c(562658),
+                       y = c(5195050), 
+                       label = c("Nantes", "Noirmoutier Island")
+                       )
+
+map_Noirm <- ggplot()+
+  geom_spatraster_rgb(data = S2_Noirm, max_col_value = 0.6)+
+  scale_x_continuous(expand = c(0,0), limits = c(494180,648222), breaks = scales::breaks_pretty(n = 3)(c(-3,-1.5)))+
+  scale_y_continuous(expand = c(0,0), limits = c(5174900,5252000), breaks = scales::breaks_pretty(n = 3)(c(46.8,47.5)))+
+  geom_point(aes(x = 562658, y=5195050), color = "red", size = 3)+
+  ggforce::geom_mark_ellipse(data=df_Noirm,
+                 aes(x=x,
+                     y=y,
+                     # label = ID,
+                     description=label
+                     ) ,
+                 linewidth=0.1,
+                 fill="white",
+                 show.legend=F,
+                 label.hjust = 0.5,
+                 con.size = 0.5,
+                 con.colour = "black",
+                 label.fontsize = c(10),
+                 alpha=0.8,
+  expand = unit(1, "mm") , 
+  radius = unit(1, "mm") , 
+  label.buffer = unit(5, "mm") ,
+  label.fill = rgb(1,1,1,0.5))+
+  # coord_equal()+
+  theme_Bede_Map()+
+  theme(axis.title = element_blank(), 
+        axis.text.x = element_blank(), 
+        axis.text.y = element_blank(), 
+        axis.ticks.x = element_blank(),
+        axis.ticks.y = element_blank(),
+        plot.margin = unit(c(0, 0, 0, 0), "lines"),
+        )
+
+# map_Noirm
+
+df_line <- data.frame(xmin = c(0,0,0,10),
+                      xmax = c(10,20,0,10),
+                      ymin = c(5.1,0,0,0),
+                      ymax = c(5.1,0,5.1,5.1),
+                      group = c(1,2,3,4))
+
+Sample_Noirm <- ggplot()+
+  annotation_custom(ggplotGrob(map_Noirm),xmin = -0.05, xmax = 4.95, ymin = -0.05,ymax = 2.5)+
+  
+  geom_spatraster_rgb(data = img_Noirm)+
+  geom_sf(data = df_line, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, group = group))+
+  geom_text(aes(x = 0 , y = 4.8, label = "A -"), hjust = 0, size = 9)+
+  geom_text(aes(x = 0.55 , y = 4.8, label = "Noirmoutier Island"), hjust = 0, size = 8)+
+
+  geom_text(aes(x = 0.55 , y = 4, label = " - Flight Height : 120 meters"), hjust = 0, size = 5)+
+  geom_text(aes(x = 0.55 , y = 3.5, label = " - Sensors used : Multispectral and LiDAR"), hjust = 0, size = 5)+
+  geom_text(aes(x = 0.55 , y = 3, label = " - Purpuse : Estimating the Health Status "), hjust = 0, size = 5)+
+  geom_text(aes(x = 1.65 , y = 2.8, label = " of Polychaete Reefs"), hjust = 0, size = 5)+
+  
+
+  xlim(c(0,10))+
+  ylim(c(0,5)) +
+  coord_equal()+
+  theme_void()
+  
+ggsave("Figures/High_res/Figure1_2/Site_Noirm.jpg", Sample_Noirm , height = 5, width = 10, dpi = 300)
 
 ```
 
